@@ -1,36 +1,28 @@
 module Yesod.CoreBot.Bliki where
 
+import Yesod.CoreBot.Bliki.Prelude
+
 import Yesod.CoreBot.Bliki.Base
+import Yesod.CoreBot.Bliki.Config
 
 import Yesod.CoreBot.Bliki.Widget.Head
 
-import Yesod.CoreBot.Bliki.Resources.Blog ( Blog )
-import qualified Yesod.CoreBot.Bliki.Resources.Blog as BlogRes
-
-import Yesod.CoreBot.Bliki.Resources.Data ( Data )
-import qualified Yesod.CoreBot.Bliki.Resources.Data as DataRes
-
-import Yesod.CoreBot.Bliki.Resources.Static ( Static )
-import qualified Yesod.CoreBot.Bliki.Resources.Static as StaticRes
-
-import Yesod.CoreBot.Bliki.Resources.Wiki ( Wiki )
-import qualified Yesod.CoreBot.Bliki.Resources.Wiki as WikiRes
+import Yesod.CoreBot.Bliki.Resources.Base
+import qualified Yesod.CoreBot.Bliki.Resources.Blog as Blog
+import qualified Yesod.CoreBot.Bliki.Resources.Data as Data
+import qualified Yesod.CoreBot.Bliki.Resources.Static as Static
+import qualified Yesod.CoreBot.Bliki.Resources.Wiki as Wiki
 
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding
 
-mkYesodSubDispatch "Bliki" bliki_resources
+mkYesodSubDispatch "Bliki" [] [parseRoutes|
+/           MainR     GET
+|]
 
-mkBliki :: String 
-        -> String 
-        -> FilePath
-        -> FilePath
-        -> IO Bliki
-mkBliki in_server_name 
-        in_static_base_URL 
-        in_bliki_dir
-        in_cache_dir
-    = do
+mk_bliki :: Config
+         -> IO Bliki
+mk_bliki config = do
     {-
      - In theory Nav is not needed. Retained to document what routes were used where by nav.
     let nav = Nav.mkNav ( Text.pack in_server_name ) 
@@ -41,34 +33,28 @@ mkBliki in_server_name
                         ( DataS . Bliki.BlogR )
                         ( \rev_ID node_path -> DataS $ Bliki.EntryRevR rev_ID node_path)
     -}
-    src_data <- DataRes.mkBliki in_bliki_dir
-                           in_cache_dir
-                           nav
-    blog <- Blog.mkBlog bliki
-    wiki <- Wiki.mkWiki bliki
-    static <- Static.mk_static in_static_base_URL
-    return CoreBotWWW { server_name     = in_server_name
-                      , static_base_URL = in_static_base_URL
-                      , data_route      = bliki
-                      , blog_route      = blog
-                      , wiki_route      = wiki
-                      , nav             = nav
-                      , static_route    = static
-                      }
+    src_data <- Data.mk_data config
+    blog <- Blog.mk_blog src_data
+    wiki <- Wiki.mk_wiki src_data
+    static <- Static.mk_static config
+    return Bliki { data_res      = src_data
+                 , blog_res      = blog
+                 , wiki_res      = wiki
+                 , static_res    = static
+                 }
 
-getMainR :: Handler RepHtml
+getMainR :: Yesod m => String -> GHandler Bliki m RepHtml
 getMainR = do
-    corebot <- getYesod
-    defaultLayout $ do
-        setTitle "CoreBot - Home"
-        default_head corebot
-        Nav.sidebar_widget $ nav corebot
+    bliki <- getYesodSub
+    config <- config $ data_res bliki
+    ( layout config ) $ do
         default_blog_entry
 
-default_head corebot = do
-    common_head
+indirect_load = do
+    bliki <- getYesodSub
+    config <- config $ data_res bliki
     addScript $ StaticS $ Static.FileR "main.js"
-    let wiki_node_base_URL = DataS $ Bliki.EntryLatestR []
+    let wiki_node_base_URL = mk_node_data_URL config
     addHamletHead [hamlet|
 <script>
     \$(document).ready( function() 
@@ -85,7 +71,9 @@ default_head corebot = do
 
 |]
 
-default_blog_entry = [whamlet|
+default_blog_entry = do
+    indirect_load
+    [whamlet|
 <div .blog_content>
     Loading 
     <a href=@{DataS Bliki.LatestR}>

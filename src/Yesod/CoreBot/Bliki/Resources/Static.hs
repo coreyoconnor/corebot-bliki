@@ -3,13 +3,15 @@ module Yesod.CoreBot.Bliki.Resources.Static where
 import Yesod.CoreBot.Bliki.Prelude
 
 import Yesod.CoreBot.Bliki.Base
+import Yesod.CoreBot.Bliki.Config
 import Yesod.CoreBot.Bliki.Resources.Base
 
 import System.Directory ( doesFileExist )
 
-mk_static :: String -> IO Static
-mk_static base_URL = do
+mk_static :: Config -> IO Static
+mk_static config = do
     -- too many assumptions
+    let base_URL = static_base_URL config
     case head base_URL of
         '/' -> return $ UseDir base_URL
         _   -> return $ UseServer base_URL

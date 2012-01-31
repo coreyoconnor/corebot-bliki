@@ -6,7 +6,7 @@ import Yesod.CoreBot.Bliki.Resources.Base
 
 data Bliki = Bliki
     { data_res        :: Data
-    , blog_ref        :: Blog
+    , blog_res        :: Blog
     , wiki_res        :: Wiki
     , static_res      :: Static
     }

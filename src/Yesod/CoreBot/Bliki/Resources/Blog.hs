@@ -12,8 +12,8 @@ import Yesod.CoreBot.Bliki.Widget.Head
 
 import qualified Data.Text as Text
 
-mkBlog :: Data -> IO Blog
-mkBlog src_data = return $ Blog src_data 
+mk_blog :: Data -> IO Blog
+mk_blog src_data = return $ Blog src_data 
 
 -- XXX: needs json representation
 getBlogIndexR :: Yesod master => GHandler Blog master RepHtml

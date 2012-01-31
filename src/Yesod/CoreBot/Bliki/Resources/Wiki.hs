@@ -14,8 +14,8 @@ import Data.FileStore
 import qualified Data.Text as Text
 import Data.Time.Clock.POSIX
 
-mkWiki :: Data -> IO Wiki
-mkWiki src_data = return $ Wiki src_data 
+mk_wiki :: Data -> IO Wiki
+mk_wiki src_data = return $ Wiki src_data 
 
 -- XXX: needs json representation
 getWikiIndexR :: Yesod master => [ Text ] -> GHandler Wiki master RepHtml
