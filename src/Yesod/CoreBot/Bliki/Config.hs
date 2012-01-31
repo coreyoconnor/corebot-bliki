@@ -11,18 +11,23 @@ import System.Directory ( createDirectory
                         , removeDirectoryRecursive 
                         )
 
+type LayoutHandler = forall sub a . GWidget sub a () -> GHandler sub a RepHtml
+
 data Config = Config
     { store_dir :: FilePath
     , cache_dir :: FilePath
+    , layout :: LayoutHandler
+    , mk_node_data_URL :: [ Text ] -> [ Text ]
+    , mk_wiki_index_URL :: [ Text ] -> [ Text ]
     }
 
-mk_config :: FilePath -> FilePath -> IO Config
-mk_config store_dir cache_dir = do
+mk_config :: FilePath -> FilePath -> LayoutHandler -> IO Config
+mk_config store_dir cache_dir layout = do
     -- clear memoization store
     should_clear_memo_store <- doesDirectoryExist cache_dir
     when should_clear_memo_store $ removeDirectoryRecursive cache_dir
     createDirectory cache_dir
-    return $ Config store_dir cache_dir
+    return $ Config store_dir cache_dir layout undefined undefined
 
 class ( Applicative m, MonadReader m, EnvType m ~ Config ) => ConfigM m
 instance ( Applicative m, MonadReader m, EnvType m ~ Config ) => ConfigM m

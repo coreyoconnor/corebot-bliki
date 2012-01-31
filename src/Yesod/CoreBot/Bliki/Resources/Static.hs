@@ -3,12 +3,9 @@ module Yesod.CoreBot.Bliki.Resources.Static where
 import Yesod.CoreBot.Bliki.Prelude
 
 import Yesod.CoreBot.Bliki.Base
+import Yesod.CoreBot.Bliki.Resources.Base
 
 import System.Directory ( doesFileExist )
-
-data Static 
-    = UseServer String
-    | UseDir FilePath
 
 mk_static :: String -> IO Static
 mk_static base_URL = do
@@ -32,7 +29,7 @@ getFileR file_name = do
                 True  -> sendFile file_type file_path
                 False -> notFound
     
-mkYesodSub "Static" [] [parseRoutes|
+mkYesodSubDispatch "Static" [] [parseRoutes|
 /#String  FileR GET
 |]
 

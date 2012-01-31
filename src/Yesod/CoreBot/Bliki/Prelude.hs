@@ -8,6 +8,7 @@ module Yesod.CoreBot.Bliki.Prelude ( module Yesod.CoreBot.Bliki.Prelude
                                    , module Data.IORef
                                    , module Data.List
                                    , module Data.Maybe
+                                   , module Data.Monoid
                                    , module Data.Text
                                    , module System.FilePath
                                    , module Yesod
@@ -40,6 +41,7 @@ import Data.FileStore ( FileStore
 import Data.IORef
 import Data.List
 import Data.Maybe
+import Data.Monoid
 
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as TextEnc
