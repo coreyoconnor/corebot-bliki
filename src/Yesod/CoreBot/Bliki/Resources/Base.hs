@@ -1,18 +1,17 @@
 module Yesod.CoreBot.Bliki.Resources.Base ( module Yesod.CoreBot.Bliki.Resources.Base
-                                          , module Data.FileStore
                                           ) where
 
 import Yesod.CoreBot.Bliki.Prelude
 
 import Yesod.CoreBot.Bliki.Config
 import Yesod.CoreBot.Bliki.DB
+import Yesod.CoreBot.Bliki.Store
 
 import Control.Concurrent
 
-import Data.FileStore
-
 data Data = Data 
     { config             :: Config
+    , store              :: Store
     , update_thread_ID   :: ThreadId
     , db_ref             :: IORef DB
     }

@@ -8,12 +8,6 @@ import Control.Monad.State.Class
 
 import qualified Data.ByteString.Lazy as B
 
-import Data.FileStore ( FileStore
-                      , Revision(..) 
-                      , TimeRange(..)
-                      , Resource
-                      , RevisionId
-                      )
 import qualified Data.FileStore as FileStore
 
 import qualified Data.Text.Lazy          as TL

@@ -4,6 +4,7 @@ module Yesod.CoreBot.Bliki.Prelude ( module Yesod.CoreBot.Bliki.Prelude
                                    , module Control.Monad
                                    , module Control.Monad.Fix
                                    , module Data.Aeson
+                                   , module Data.FileStore
                                    , module Data.IORef
                                    , module Data.List
                                    , module Data.Maybe
@@ -28,6 +29,13 @@ import Control.Monad
 import Control.Monad.Fix
 
 import Data.Aeson
+
+import Data.FileStore ( FileStore
+                      , Revision(..) 
+                      , TimeRange(..)
+                      , Resource
+                      , RevisionId
+                      )
 
 import Data.IORef
 import Data.List

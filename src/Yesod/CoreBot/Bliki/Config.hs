@@ -6,10 +6,23 @@ import Control.Monad.Reader.Class
 
 import Data.FileStore ( RevisionId )
 
+import System.Directory ( createDirectory
+                        , doesDirectoryExist
+                        , removeDirectoryRecursive 
+                        )
+
 data Config = Config
     { store_dir :: FilePath
     , cache_dir :: FilePath
     }
+
+mk_config :: FilePath -> FilePath -> IO Config
+mk_config store_dir cache_dir = do
+    -- clear memoization store
+    should_clear_memo_store <- doesDirectoryExist cache_dir
+    when should_clear_memo_store $ removeDirectoryRecursive cache_dir
+    createDirectory cache_dir
+    return $ Config store_dir cache_dir
 
 class ( Applicative m, MonadReader m, EnvType m ~ Config ) => ConfigM m
 instance ( Applicative m, MonadReader m, EnvType m ~ Config ) => ConfigM m

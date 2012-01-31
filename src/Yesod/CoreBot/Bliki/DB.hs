@@ -61,8 +61,6 @@ data DB = DB
     , bloggables        :: [ Bloggable ]
     }
 
-type BlikiM a = StateT DB (ReaderT Config IO ) a
-
 history_to_updates :: [ Revision ] -> [ DataUpdate ]
 history_to_updates (r : rs) = revision_to_updates r ++ history_to_updates rs
 
