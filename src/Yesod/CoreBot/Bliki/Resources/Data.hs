@@ -122,7 +122,7 @@ update_thread ( config, store ) db_ref = do
             threadDelay 10000000
     forever update_thread_
 
-mk_data :: Yesod master => Config master -> IO ( Data master )
+mk_data :: Yesod master => Config master -> IO ( Data_ master )
 mk_data config = do
     let filestore = FileStore.gitFileStore $ store_dir config
         store = Store { filestore = filestore }
@@ -139,25 +139,25 @@ mk_data config = do
                 , db_ref            = db_ref
                 }
 
-node_HTML_content :: Yesod master => Data master -> DB -> FilePath -> Content
+node_HTML_content :: Yesod master => Data_ master -> DB -> FilePath -> Content
 node_HTML_content src_data db node_path = 
     let Just rev_ID = Map.lookup node_path ( latest_revisions db )
         out_path = node_HTML_path (config src_data) rev_ID node_path
     in ContentFile out_path Nothing
 
-blog_HTML_content :: Yesod master => Data master -> RevisionId -> Content
+blog_HTML_content :: Yesod master => Data_ master -> RevisionId -> Content
 blog_HTML_content src_data rev_ID = 
     let out_path = blog_HTML_path (config src_data) rev_ID
     in ContentFile out_path Nothing
 
-getBlogR  :: Yesod master => RevisionId -> GHandler ( Data master ) master [(ContentType, Content)]
+getBlogR  :: Yesod master => RevisionId -> GHandler ( Data_ master ) master [(ContentType, Content)]
 getBlogR rev_ID = do
     src_data <- getYesodSub
     let out_HTML_content = blog_HTML_content src_data rev_ID
     return [ ( typeHtml, out_HTML_content )
            ]
     
-getLatestR :: Yesod master => GHandler ( Data master ) master [(ContentType, Content)]
+getLatestR :: Yesod master => GHandler ( Data_ master ) master [(ContentType, Content)]
 getLatestR = do
     src_data <- getYesodSub 
     db <- liftIO $ readIORef $ db_ref src_data
@@ -175,14 +175,14 @@ getLatestR = do
                    , ( typePlain, ContentFile markdown_path Nothing ) 
                    ]
 
-getUpdateLogR :: Yesod master => GHandler ( Data master ) master RepJson
+getUpdateLogR :: Yesod master => GHandler ( Data_ master ) master RepJson
 getUpdateLogR = do
     jsonToRepJson $ toJSON ()
 
 getEntryRevR :: Yesod master 
              => RevisionId 
              -> [ Text ] 
-             -> GHandler ( Data master ) master [(ContentType, Content)]
+             -> GHandler ( Data_ master ) master [(ContentType, Content)]
 getEntryRevR rev_ID entry_path_texts = do
     src_data <- getYesodSub
     let ( first_path : rest_paths ) = map T.unpack entry_path_texts
@@ -193,7 +193,7 @@ getEntryRevR rev_ID entry_path_texts = do
            , ( typePlain, ContentFile markdown_path Nothing ) 
            ]
     
-getEntryLatestR :: Yesod master => [ Text ] -> GHandler ( Data master ) master [(ContentType, Content)]
+getEntryLatestR :: Yesod master => [ Text ] -> GHandler ( Data_ master ) master [(ContentType, Content)]
 getEntryLatestR entry_path_texts = do
     let ( first_path : rest_paths ) = map T.unpack entry_path_texts
         node_path = foldl (</>) first_path rest_paths
@@ -208,7 +208,7 @@ getEntryLatestR entry_path_texts = do
             liftIO $ putStrLn $ "latest rev of " ++ show node_path ++ " is " ++ show rev_ID
             getEntryRevR rev_ID entry_path_texts
 
-mkYesodSubDispatch "Data master" [] [parseRoutes|
+mkYesodSubDispatch "Data_ master" [] [parseRoutes|
 /latest                     LatestR      GET
 /                           UpdateLogR   GET
 /entry/*Texts               EntryLatestR GET

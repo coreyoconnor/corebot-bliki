@@ -14,15 +14,15 @@ import Data.FileStore
 import qualified Data.Text as Text
 import Data.Time.Clock.POSIX
 
-mk_wiki :: Data master -> IO ( Wiki master )
+mk_wiki :: Data_ master -> IO ( Wiki_ master )
 mk_wiki src_data = return $ Wiki src_data 
 
 -- XXX: needs json representation
-getWikiIndexR :: Yesod master => [ Text ] -> GHandler ( Wiki master ) master RepHtml
+getWikiIndexR :: Yesod master => [ Text ] -> GHandler ( Wiki_ master ) master RepHtml
 getWikiIndexR node_path = do
     liftIO $ putStrLn $ "index for node " ++ show node_path
     wiki@(Wiki src_data) <- getYesodSub
-    layout ( config src_data ) $ do
+    defaultLayout $ do
         let store_path = foldl (</>) "" $ map Text.unpack node_path
         listing <- evalStateT (directory_listing store_path) ( store src_data )
         let entry_names = [ Text.pack name | FSFile name      <- listing ]
@@ -38,7 +38,7 @@ getWikiIndexR node_path = do
                     <li .entry_name><a href=@{data_URL}/#{store_path}/#{entry_name}>#{entry_name}
 |]
 
-mkYesodSubDispatch "Wiki master" [] [parseRoutes|
+mkYesodSubDispatch "Wiki_ master" [] [parseRoutes|
 /*Texts  WikiIndexR GET
 |]
 

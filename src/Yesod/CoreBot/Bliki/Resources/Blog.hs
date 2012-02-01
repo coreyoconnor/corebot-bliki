@@ -12,11 +12,11 @@ import Yesod.CoreBot.Bliki.Widget.Head
 
 import qualified Data.Text as Text
 
-mk_blog :: Data master -> IO ( Blog master )
+mk_blog :: Data_ master -> IO ( Blog_ master )
 mk_blog src_data = return $ Blog src_data 
 
 -- XXX: needs json representation
-getBlogIndexR :: Yesod master => GHandler ( Blog master ) master RepHtml
+getBlogIndexR :: Yesod master => GHandler ( Blog_ master ) master RepHtml
 getBlogIndexR = do
     blog@(Blog src_data) <- getYesodSub
     db <- liftIO $ readIORef $ db_ref src_data
@@ -47,7 +47,7 @@ getBlogIndexR = do
             |] : build_summaries us
         build_summaries ( Wibble _ : us )
             = build_summaries us
-    layout (config src_data)  $ do
+    defaultLayout $ do
         [whamlet|
 <div .update_log>
     <ol .summary_listing>
@@ -55,7 +55,7 @@ getBlogIndexR = do
             <li> ^{summary}     
 |]
 
-mkYesodSubDispatch "Blog master" [] [parseRoutes|
+mkYesodSubDispatch "Blog_ master" [] [parseRoutes|
 /         BlogIndexR       GET
 |]
 

@@ -1,4 +1,8 @@
-module Yesod.CoreBot.Bliki where
+module Yesod.CoreBot.Bliki ( module Yesod.CoreBot.Bliki
+                           , module Yesod.CoreBot.Bliki.Base
+                           , module Yesod.CoreBot.Bliki.Config
+                           , module Yesod.CoreBot.Bliki.Resources.Base
+                           ) where
 
 import Yesod.CoreBot.Bliki.Prelude
 
@@ -16,13 +20,9 @@ import qualified Yesod.CoreBot.Bliki.Resources.Wiki as Wiki
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding
 
-mkYesodSubDispatch "Bliki master" [] [parseRoutes|
-/           MainR     GET
-|]
-
 mk_bliki :: Yesod master 
          => Config master
-         -> IO ( Bliki master )
+         -> IO ( Bliki_ master )
 mk_bliki config = do
     src_data <- Data.mk_data config
     blog <- Blog.mk_blog src_data
@@ -32,10 +32,10 @@ mk_bliki config = do
                  , wiki_res      = wiki
                  }
 
-getMainR :: Yesod m => GHandler ( Bliki m ) m RepHtml
+getMainR :: Yesod m => GHandler ( Bliki_ m ) m RepHtml
 getMainR = do
     bliki <- getYesodSub
-    ( layout $ config $ data_res bliki ) $ do
+    defaultLayout $ do
         default_blog_entry
 
 indirect_load data_R = do
@@ -71,5 +71,9 @@ default_blog_entry = do
     <a href=@{latest_data_R}>
         latest blog entry 
     \ HTML content.
+|]
+
+mkYesodSubDispatch "Bliki_ master" [] [parseRoutes|
+/           MainR     GET
 |]
 

@@ -11,18 +11,18 @@ import Control.Concurrent
 
 import Language.Haskell.TH.Syntax
 
-data Data master = Data 
+data Data_ master = Data 
     { config             :: Config master
     , store              :: Store
     , update_thread_ID   :: ThreadId
     , db_ref             :: IORef DB
     }
 
-data Blog master = Blog ( Data master )
+data Blog_ master = Blog ( Data_ master )
 
-data Wiki master = Wiki ( Data master )
+data Wiki_ master = Wiki ( Data_ master )
 
-mkYesodSubData "Data master" [ ] [parseRoutes|
+mkYesodSubData "Data_ master" [ ] [parseRoutes|
 /latest                     LatestR      GET
 /                           UpdateLogR   GET
 /entry/*Texts               EntryLatestR GET
@@ -30,11 +30,11 @@ mkYesodSubData "Data master" [ ] [parseRoutes|
 /rev/#RevisionId/*Texts     EntryRevR    GET
 |]
 
-mkYesodSubData "Blog master" [] [parseRoutes|
+mkYesodSubData "Blog_ master" [] [parseRoutes|
 /         BlogIndexR       GET
 |]
 
-mkYesodSubData "Wiki master" [] [parseRoutes|
+mkYesodSubData "Wiki_ master" [] [parseRoutes|
 /*Texts  WikiIndexR GET
 |]
 

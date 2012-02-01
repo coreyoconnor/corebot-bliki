@@ -11,8 +11,6 @@ import System.Directory ( createDirectory
                         , removeDirectoryRecursive 
                         )
 
-type LayoutHandler = forall sub a . GWidget sub a () -> GHandler sub a RepHtml
-
 data DataRoutes master = DataRoutes
     { latest_route   :: Route master
     , entry_latest_R :: Route master
@@ -39,7 +37,6 @@ data Static
 data Config master = Config
     { store_dir :: FilePath
     , cache_dir :: FilePath
-    , layout :: LayoutHandler
     , data_routes   :: DataRoutes master
     , blog_routes   :: BlogRoutes master
     , wiki_routes   :: WikiRoutes master
@@ -47,15 +44,14 @@ data Config master = Config
     , static_config :: Static
     }
 
-mk_config :: Yesod master => FilePath -> FilePath -> LayoutHandler -> IO ( Config master )
-mk_config store_dir cache_dir layout = do
+mk_config :: Yesod master => FilePath -> FilePath -> IO ( Config master )
+mk_config store_dir cache_dir = do
     -- clear memoization store
     should_clear_memo_store <- doesDirectoryExist cache_dir
     when should_clear_memo_store $ removeDirectoryRecursive cache_dir
     createDirectory cache_dir
     return $ Config store_dir 
                     cache_dir 
-                    layout 
                     undefined 
                     undefined
                     undefined
