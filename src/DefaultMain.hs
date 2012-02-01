@@ -10,9 +10,15 @@ data Main = Main
     }
 
 type Bliki = Bliki_ Main
+
 type Data = Data_ Main
+get_data = data_res . bliki
+
 type Blog = Blog_ Main
+get_blog = blog_res . bliki
+
 type Wiki = Wiki_ Main
+get_wiki = wiki_res . bliki
 
 instance Yesod Main where
     approot _ = "http://localhost:8080"
@@ -26,4 +32,7 @@ main = do
 
 mkYesod "Main" [parseRoutes|
 /       BlikiS Bliki bliki
+/data   DataS  Data  get_data
+/blog   BlogS  Blog  get_blog
+/wiki   WikiS  Wiki  get_wiki
 |]
