@@ -6,57 +6,42 @@ import Control.Monad.Reader.Class
 
 import Data.FileStore ( RevisionId )
 
-import System.Directory ( createDirectory
-                        , doesDirectoryExist
-                        , removeDirectoryRecursive 
-                        )
-
-data DataRoutes master = DataRoutes
-    { latest_route   :: Route master
-    , entry_latest_R :: Route master
-    }
-
-data BlogRoutes master = BlogRoutes
-    { blog_index_route :: Route master
-    }
-
-data WikiRoutes master = WikiRoutes
-    { wiki_index_route :: Route master
-    }
-
-data StaticRoutes master = StaticRoutes
-    { static_file_route :: Route master
-    }
+import qualified Data.Text as Text
 
 data Static 
     = UseServer String
     | UseDir FilePath
 
+data AnyRoute where
+    AnyRoute :: forall r . RenderRoute r => Route r -> AnyRoute
+
+data DataRoutes master where
+    DataRoutes :: { latest_R :: Route master
+                  , update_log_R :: Route master
+                  , entry_latest_R :: Route master
+                  , blog_R :: Route master
+                  } -> DataRoutes master
+
+data BlogRoutes master where
+    BlogRoutes :: { blog_index_R :: Route master } -> BlogRoutes master
+
+data WikiRoutes master where
+    WikiRoutes :: { wiki_index_R :: Route master } -> WikiRoutes master
+
+data StaticRoutes master where
+    StaticRoutes :: { file_R :: Route master } -> StaticRoutes master
+
 -- I don't think there is a way to do subsites of subsites in Yesod? 
 -- Widgets that need to build links need the master routes?
-data Config master = Config
-    { store_dir :: FilePath
-    , cache_dir :: FilePath
-    , data_routes   :: DataRoutes master
-    , blog_routes   :: BlogRoutes master
-    , wiki_routes   :: WikiRoutes master
-    , static_routes :: StaticRoutes master
-    , static_config :: Static
-    }
-
-mk_config :: Yesod master => FilePath -> FilePath -> IO ( Config master )
-mk_config store_dir cache_dir = do
-    -- clear memoization store
-    should_clear_memo_store <- doesDirectoryExist cache_dir
-    when should_clear_memo_store $ removeDirectoryRecursive cache_dir
-    createDirectory cache_dir
-    return $ Config store_dir 
-                    cache_dir 
-                    undefined 
-                    undefined
-                    undefined
-                    undefined
-                    undefined
+data Config master where
+    Config :: { store_dir :: FilePath
+              , cache_dir :: FilePath
+              , data_routes   :: DataRoutes master
+              , blog_routes   :: BlogRoutes master
+              , wiki_routes   :: WikiRoutes master
+              , static_routes :: StaticRoutes master
+              , static_config :: Static
+              } -> Config master
 
 class ( Applicative m, MonadReader m, Yesod master, EnvType m ~ Config master ) => ConfigM master m
 instance ( Applicative m, MonadReader m, Yesod master, EnvType m ~ Config master ) => ConfigM master m

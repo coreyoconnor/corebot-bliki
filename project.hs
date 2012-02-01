@@ -29,6 +29,7 @@ main = project $ do
     ghc_option "-XRankNTypes"
     ghc_option "-XScopedTypeVariables"
     ghc_option "-XUndecidableInstances"
+    ghc_option "-XGADTs"
 
     executable "corebot-bliki" "DefaultMain"
 

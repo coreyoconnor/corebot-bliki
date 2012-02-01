@@ -27,8 +27,8 @@ getWikiIndexR node_path = do
         listing <- evalStateT (directory_listing store_path) ( store src_data )
         let entry_names = [ Text.pack name | FSFile name      <- listing ]
             node_names  = [ Text.pack name | FSDirectory name <- listing ]
-        let data_URL = latest_route ( data_routes (config src_data) )
-            index_URL = wiki_index_route ( wiki_routes (config src_data) )
+        let data_URL = entry_latest_R $ data_routes (config src_data)
+            index_URL = wiki_index_R $ wiki_routes (config src_data)
         [whamlet|
         <div .wiki_index>
             <ul>/#{store_path}

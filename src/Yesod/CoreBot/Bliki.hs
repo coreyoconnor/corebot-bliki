@@ -32,16 +32,14 @@ mk_bliki config = do
                  , wiki_res      = wiki
                  }
 
-getMainR :: Yesod m => GHandler ( Bliki_ m ) m RepHtml
 getMainR = do
-    bliki <- getYesodSub
     defaultLayout $ do
         default_blog_entry
 
 indirect_load data_R = do
     bliki <- lift $ getYesodSub
     let cfg = config $ data_res bliki
-    let base_R = entry_latest_R ( data_routes cfg )
+    base_URL <- approot <$> ( lift getYesod )
     -- XXX: the $(.blog_content) is not specific enough. Needs to be exactly the element tied to
     -- this data_R
     addHamletHead [hamlet|
@@ -52,7 +50,7 @@ indirect_load data_R = do
               , function( data ) 
                 {
                     \$(".blog_content").html(data);
-                    process_HTML_for_wiki(data, $(".blog_content"), "@{base_R}");
+                    process_HTML_for_wiki(data, $(".blog_content"), "#{base_URL}");
                 }
               , 'html'
               );
@@ -63,12 +61,12 @@ indirect_load data_R = do
 default_blog_entry = do
     bliki <- lift $ getYesodSub
     let cfg = config $ data_res bliki
-        latest_data_R = latest_route ( data_routes cfg )
-    indirect_load latest_data_R
+        data_R = latest_R $ data_routes cfg
+    indirect_load data_R
     [whamlet|
 <div .blog_content>
     Loading 
-    <a href=@{latest_data_R}>
+    <a href=@{data_R}>
         latest blog entry 
     \ HTML content.
 |]

@@ -23,6 +23,11 @@ import qualified Data.Text               as T
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
 
+import System.Directory ( createDirectory
+                        , doesDirectoryExist
+                        , removeDirectoryRecursive 
+                        )
+
 -- XXX: should be a RWST
 type DataM master a = StateT DB ( StateT Store (ReaderT ( Config master ) IO) ) a
 
@@ -124,11 +129,15 @@ update_thread ( config, store ) db_ref = do
 
 mk_data :: Yesod master => Config master -> IO ( Data_ master )
 mk_data config = do
+    -- clear memoization store
+    should_clear_memo_store <- doesDirectoryExist $ cache_dir config
+    when should_clear_memo_store $ removeDirectoryRecursive $ cache_dir config
+    createDirectory $ cache_dir config
+    -- build internal DB state
     let filestore = FileStore.gitFileStore $ store_dir config
         store = Store { filestore = filestore }
         empty_db = DB [] [] Map.empty []
     initial_history <- FileStore.history filestore [] (TimeRange Nothing Nothing) 
-    -- collect initial data
     let db_0_build = execStateT (apply_revisions initial_history) empty_db
     db_ref <- newIORef =<< runReaderT (evalStateT db_0_build store) config
     -- XXX: Only because store is not pure value but a reference

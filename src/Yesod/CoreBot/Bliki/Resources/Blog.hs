@@ -32,14 +32,14 @@ getBlogIndexR = do
                 <p .blog_summary> #{take 200 txt}
             |] : build_summaries us
         build_summaries ( EntryAdded _ node_path : us ) = 
-            let node_R = latest_route (data_routes (config src_data))
+            let node_R = entry_latest_R $ data_routes (config src_data) 
             in [whamlet|
                 <p .node_update>
                     Added 
                     <a href=@{node_R}/#{node_path}>#{node_path}
             |] : build_summaries us
         build_summaries ( EntryChanged _ node_path : us ) = 
-            let node_R = latest_route (data_routes (config src_data))
+            let node_R = entry_latest_R $ data_routes (config src_data)
             in [whamlet|
                 <p .node_update>
                     Changed 
