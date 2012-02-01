@@ -9,22 +9,20 @@ import Yesod.CoreBot.Bliki.Store
 
 import Control.Concurrent
 
-data Data = Data 
-    { config             :: Config
+import Language.Haskell.TH.Syntax
+
+data Data master = Data 
+    { config             :: Config master
     , store              :: Store
     , update_thread_ID   :: ThreadId
     , db_ref             :: IORef DB
     }
 
-data Blog = Blog Data
+data Blog master = Blog ( Data master )
 
-data Wiki = Wiki Data
+data Wiki master = Wiki ( Data master )
 
-data Static 
-    = UseServer String
-    | UseDir FilePath
-
-mkYesodSubData "Data" [] [parseRoutes|
+mkYesodSubData "Data master" [ ] [parseRoutes|
 /latest                     LatestR      GET
 /                           UpdateLogR   GET
 /entry/*Texts               EntryLatestR GET
@@ -32,15 +30,14 @@ mkYesodSubData "Data" [] [parseRoutes|
 /rev/#RevisionId/*Texts     EntryRevR    GET
 |]
 
-mkYesodSubData "Blog" [] [parseRoutes|
+mkYesodSubData "Blog master" [] [parseRoutes|
 /         BlogIndexR       GET
 |]
 
-mkYesodSubData "Wiki" [] [parseRoutes|
+mkYesodSubData "Wiki master" [] [parseRoutes|
 /*Texts  WikiIndexR GET
 |]
 
 mkYesodSubData "Static" [] [parseRoutes|
 /#String  FileR GET
 |]
-

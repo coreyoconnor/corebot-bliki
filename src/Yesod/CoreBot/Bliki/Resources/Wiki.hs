@@ -14,11 +14,11 @@ import Data.FileStore
 import qualified Data.Text as Text
 import Data.Time.Clock.POSIX
 
-mk_wiki :: Data -> IO Wiki
+mk_wiki :: Data master -> IO ( Wiki master )
 mk_wiki src_data = return $ Wiki src_data 
 
 -- XXX: needs json representation
-getWikiIndexR :: Yesod master => [ Text ] -> GHandler Wiki master RepHtml
+getWikiIndexR :: Yesod master => [ Text ] -> GHandler ( Wiki master ) master RepHtml
 getWikiIndexR node_path = do
     liftIO $ putStrLn $ "index for node " ++ show node_path
     wiki@(Wiki src_data) <- getYesodSub
@@ -27,18 +27,18 @@ getWikiIndexR node_path = do
         listing <- evalStateT (directory_listing store_path) ( store src_data )
         let entry_names = [ Text.pack name | FSFile name      <- listing ]
             node_names  = [ Text.pack name | FSDirectory name <- listing ]
-        let data_URL e = mconcat $ mk_node_data_URL (config src_data) $ node_path ++ [ e ]
-            index_URL e = mconcat $ mk_wiki_index_URL (config src_data) $ node_path ++ [ e ]
+        let data_URL = latest_route ( data_routes (config src_data) )
+            index_URL = wiki_index_route ( wiki_routes (config src_data) )
         [whamlet|
         <div .wiki_index>
             <ul>/#{store_path}
                 $forall node_name <- node_names
-                    <li .node_name><a href=#{index_URL node_name}>#{node_name}
+                    <li .node_name><a href=@{index_URL}/#{store_path}/#{node_name}>#{node_name}
                 $forall entry_name <- entry_names
-                    <li .entry_name><a href=#{data_URL entry_name}>#{entry_name}
+                    <li .entry_name><a href=@{data_URL}/#{store_path}/#{entry_name}>#{entry_name}
 |]
 
-mkYesodSubDispatch "Wiki" [] [parseRoutes|
+mkYesodSubDispatch "Wiki master" [] [parseRoutes|
 /*Texts  WikiIndexR GET
 |]
 

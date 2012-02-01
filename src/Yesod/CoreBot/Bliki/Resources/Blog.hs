@@ -12,11 +12,11 @@ import Yesod.CoreBot.Bliki.Widget.Head
 
 import qualified Data.Text as Text
 
-mk_blog :: Data -> IO Blog
+mk_blog :: Data master -> IO ( Blog master )
 mk_blog src_data = return $ Blog src_data 
 
 -- XXX: needs json representation
-getBlogIndexR :: Yesod master => GHandler Blog master RepHtml
+getBlogIndexR :: Yesod master => GHandler ( Blog master ) master RepHtml
 getBlogIndexR = do
     blog@(Blog src_data) <- getYesodSub
     db <- liftIO $ readIORef $ db_ref src_data
@@ -32,18 +32,18 @@ getBlogIndexR = do
                 <p .blog_summary> #{take 200 txt}
             |] : build_summaries us
         build_summaries ( EntryAdded _ node_path : us ) = 
-            let base_URL = mconcat $ mk_node_data_URL (config src_data) []
+            let node_R = latest_route (data_routes (config src_data))
             in [whamlet|
                 <p .node_update>
                     Added 
-                    <a href=#{base_URL}/#{node_path}>#{node_path}
+                    <a href=@{node_R}/#{node_path}>#{node_path}
             |] : build_summaries us
         build_summaries ( EntryChanged _ node_path : us ) = 
-            let base_URL = mconcat $ mk_node_data_URL (config src_data) []
+            let node_R = latest_route (data_routes (config src_data))
             in [whamlet|
                 <p .node_update>
                     Changed 
-                    <a href=#{base_URL}/#{node_path}>#{node_path}
+                    <a href=@{node_R}/#{node_path}>#{node_path}
             |] : build_summaries us
         build_summaries ( Wibble _ : us )
             = build_summaries us
@@ -55,7 +55,7 @@ getBlogIndexR = do
             <li> ^{summary}     
 |]
 
-mkYesodSubDispatch "Blog" [] [parseRoutes|
+mkYesodSubDispatch "Blog master" [] [parseRoutes|
 /         BlogIndexR       GET
 |]
 

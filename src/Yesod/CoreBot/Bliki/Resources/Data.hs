@@ -24,16 +24,16 @@ import Data.Time.Clock
 import Data.Time.Clock.POSIX
 
 -- XXX: should be a RWST
-type DataM a = StateT DB ( StateT Store (ReaderT Config IO) ) a
+type DataM master a = StateT DB ( StateT Store (ReaderT ( Config master ) IO) ) a
 
-process_revisions :: ( Config, Store ) -> IORef DB -> [ Revision ] -> IO ()
+process_revisions :: Yesod master => ( Config master, Store ) -> IORef DB -> [ Revision ] -> IO ()
 process_revisions ( config, store ) db_ref rs = do
     db  <- readIORef db_ref
     let db_mod = execStateT (apply_revisions rs) db
     db' <- runReaderT ( evalStateT db_mod store ) config 
     writeIORef db_ref db'
 
-apply_revisions :: [ Revision ] -> DataM ()
+apply_revisions :: Yesod master => [ Revision ] -> DataM master ()
 apply_revisions [] = do
     return ()
 apply_revisions [ r ] = do
@@ -48,7 +48,7 @@ apply_revisions (r : r_prev : rs) = do
     modify $ \db -> db { raw_history = r : raw_history db }
     return ()
 
-apply_updates :: [ DataUpdate ] -> DataM ()
+apply_updates :: Yesod master => [ DataUpdate ] -> DataM master ()
 apply_updates [] = do
     return ()
 apply_updates ( u : us ) = do
@@ -88,7 +88,7 @@ apply_updates ( u : us ) = do
                     add_bloggable $ WikiBloggable update_entry_path update_rev_ID 
             lift $ build_node_HTML ( prev_bloggable b ) update_rev_ID update_entry_path
 
-add_bloggable :: ( Maybe Bloggable -> Bloggable ) -> DataM Bloggable
+add_bloggable :: ( Maybe Bloggable -> Bloggable ) -> DataM master Bloggable
 add_bloggable fb = do
     bs <- gets bloggables
     let b = case bs of
@@ -98,7 +98,7 @@ add_bloggable fb = do
     return b
 
 -- XXX: Should be event driven but that'd be harder
-update_thread :: ( Config, Store ) -> IORef DB  -> IO ()
+update_thread :: Yesod master => ( Config master, Store ) -> IORef DB  -> IO ()
 update_thread ( config, store ) db_ref = do
     -- XXX: Lower bound to FileStore.history is not exclusive
     let inc_a_bit = addUTCTime (fromInteger 1)
@@ -122,7 +122,7 @@ update_thread ( config, store ) db_ref = do
             threadDelay 10000000
     forever update_thread_
 
-mk_data :: Config -> IO Data
+mk_data :: Yesod master => Config master -> IO ( Data master )
 mk_data config = do
     let filestore = FileStore.gitFileStore $ store_dir config
         store = Store { filestore = filestore }
@@ -139,25 +139,25 @@ mk_data config = do
                 , db_ref            = db_ref
                 }
 
-node_HTML_content :: Data -> DB -> FilePath -> Content
+node_HTML_content :: Yesod master => Data master -> DB -> FilePath -> Content
 node_HTML_content src_data db node_path = 
     let Just rev_ID = Map.lookup node_path ( latest_revisions db )
         out_path = node_HTML_path (config src_data) rev_ID node_path
     in ContentFile out_path Nothing
 
-blog_HTML_content :: Data -> RevisionId -> Content
+blog_HTML_content :: Yesod master => Data master -> RevisionId -> Content
 blog_HTML_content src_data rev_ID = 
     let out_path = blog_HTML_path (config src_data) rev_ID
     in ContentFile out_path Nothing
 
-getBlogR  :: Yesod master => RevisionId -> GHandler Data master [(ContentType, Content)]
+getBlogR  :: Yesod master => RevisionId -> GHandler ( Data master ) master [(ContentType, Content)]
 getBlogR rev_ID = do
     src_data <- getYesodSub
     let out_HTML_content = blog_HTML_content src_data rev_ID
     return [ ( typeHtml, out_HTML_content )
            ]
     
-getLatestR :: Yesod master => GHandler Data master [(ContentType, Content)]
+getLatestR :: Yesod master => GHandler ( Data master ) master [(ContentType, Content)]
 getLatestR = do
     src_data <- getYesodSub 
     db <- liftIO $ readIORef $ db_ref src_data
@@ -175,14 +175,14 @@ getLatestR = do
                    , ( typePlain, ContentFile markdown_path Nothing ) 
                    ]
 
-getUpdateLogR :: Yesod master => GHandler Data master RepJson
+getUpdateLogR :: Yesod master => GHandler ( Data master ) master RepJson
 getUpdateLogR = do
     jsonToRepJson $ toJSON ()
 
 getEntryRevR :: Yesod master 
              => RevisionId 
              -> [ Text ] 
-             -> GHandler Data master [(ContentType, Content)]
+             -> GHandler ( Data master ) master [(ContentType, Content)]
 getEntryRevR rev_ID entry_path_texts = do
     src_data <- getYesodSub
     let ( first_path : rest_paths ) = map T.unpack entry_path_texts
@@ -193,7 +193,7 @@ getEntryRevR rev_ID entry_path_texts = do
            , ( typePlain, ContentFile markdown_path Nothing ) 
            ]
     
-getEntryLatestR :: Yesod master => [ Text ] -> GHandler Data master [(ContentType, Content)]
+getEntryLatestR :: Yesod master => [ Text ] -> GHandler ( Data master ) master [(ContentType, Content)]
 getEntryLatestR entry_path_texts = do
     let ( first_path : rest_paths ) = map T.unpack entry_path_texts
         node_path = foldl (</>) first_path rest_paths
@@ -208,7 +208,7 @@ getEntryLatestR entry_path_texts = do
             liftIO $ putStrLn $ "latest rev of " ++ show node_path ++ " is " ++ show rev_ID
             getEntryRevR rev_ID entry_path_texts
 
-mkYesodSubDispatch "Data" [] [parseRoutes|
+mkYesodSubDispatch "Data master" [] [parseRoutes|
 /latest                     LatestR      GET
 /                           UpdateLogR   GET
 /entry/*Texts               EntryLatestR GET

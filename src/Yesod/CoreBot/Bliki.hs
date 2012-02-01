@@ -16,54 +16,43 @@ import qualified Yesod.CoreBot.Bliki.Resources.Wiki as Wiki
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding
 
-mkYesodSubDispatch "Bliki" [] [parseRoutes|
+mkYesodSubDispatch "Bliki master" [] [parseRoutes|
 /           MainR     GET
 |]
 
-mk_bliki :: Config
-         -> IO Bliki
+mk_bliki :: Yesod master 
+         => Config master
+         -> IO ( Bliki master )
 mk_bliki config = do
-    {-
-     - In theory Nav is not needed. Retained to document what routes were used where by nav.
-    let nav = Nav.mkNav ( Text.pack in_server_name ) 
-                        ( const MainR )
-                        ( DataS . Bliki.EntryLatestR )
-                        ( const $ BlogS Blog.IndexR )
-                        ( WikiS . Wiki.IndexR )
-                        ( DataS . Bliki.BlogR )
-                        ( \rev_ID node_path -> DataS $ Bliki.EntryRevR rev_ID node_path)
-    -}
     src_data <- Data.mk_data config
     blog <- Blog.mk_blog src_data
     wiki <- Wiki.mk_wiki src_data
-    static <- Static.mk_static config
     return Bliki { data_res      = src_data
                  , blog_res      = blog
                  , wiki_res      = wiki
-                 , static_res    = static
                  }
 
-getMainR :: Yesod m => String -> GHandler Bliki m RepHtml
+getMainR :: Yesod m => GHandler ( Bliki m ) m RepHtml
 getMainR = do
     bliki <- getYesodSub
-    config <- config $ data_res bliki
-    ( layout config ) $ do
+    ( layout $ config $ data_res bliki ) $ do
         default_blog_entry
 
-indirect_load = do
-    bliki <- getYesodSub
-    config <- config $ data_res bliki
-    addScript $ StaticS $ Static.FileR "main.js"
-    let wiki_node_base_URL = mk_node_data_URL config
+indirect_load data_R = do
+    bliki <- lift $ getYesodSub
+    let cfg = config $ data_res bliki
+    let base_R = entry_latest_R ( data_routes cfg )
+    -- XXX: the $(.blog_content) is not specific enough. Needs to be exactly the element tied to
+    -- this data_R
     addHamletHead [hamlet|
 <script>
     \$(document).ready( function() 
     {
-        \$.get ( "@{DataS Bliki.LatestR}"
+        \$.get ( "@{data_R}"
               , function( data ) 
                 {
                     \$(".blog_content").html(data);
-                    process_HTML_for_wiki(data, $(".blog_content"), "@{wiki_node_base_URL}");
+                    process_HTML_for_wiki(data, $(".blog_content"), "@{base_R}");
                 }
               , 'html'
               );
@@ -72,11 +61,14 @@ indirect_load = do
 |]
 
 default_blog_entry = do
-    indirect_load
+    bliki <- lift $ getYesodSub
+    let cfg = config $ data_res bliki
+        latest_data_R = latest_route ( data_routes cfg )
+    indirect_load latest_data_R
     [whamlet|
 <div .blog_content>
     Loading 
-    <a href=@{DataS Bliki.LatestR}>
+    <a href=@{latest_data_R}>
         latest blog entry 
     \ HTML content.
 |]

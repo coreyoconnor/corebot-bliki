@@ -8,14 +8,6 @@ import Yesod.CoreBot.Bliki.Resources.Base
 
 import System.Directory ( doesFileExist )
 
-mk_static :: Config -> IO Static
-mk_static config = do
-    -- too many assumptions
-    let base_URL = static_base_URL config
-    case head base_URL of
-        '/' -> return $ UseDir base_URL
-        _   -> return $ UseServer base_URL
-
 getFileR :: Yesod m => String -> GHandler Static m ()
 getFileR file_name = do
     mode <- getYesodSub

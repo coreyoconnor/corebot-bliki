@@ -29,7 +29,7 @@ import Text.Pandoc.Shared
 
 import System.Directory
 
-pandoc_write_options :: ConfigM m
+pandoc_write_options :: ConfigM master m
                      => Maybe Bloggable 
                      -> m WriterOptions
 pandoc_write_options mprev_update = do
@@ -95,7 +95,7 @@ $endif$
 |]
     }
 
-build_blog_HTML :: ( MonadIO m, ConfigM m )
+build_blog_HTML :: ( MonadIO m, ConfigM master m )
                 => Maybe Bloggable 
                 -> RevisionId 
                 -> String 
@@ -112,7 +112,7 @@ build_blog_HTML mprev_update rev_ID txt = do
             let html_string = writeHtmlString write_opts pandoc
             liftIO $ cache_str out_path html_string
     
-build_node_HTML :: ( MonadIO m, StoreM m, ConfigM m )
+build_node_HTML :: ( MonadIO m, StoreM m, ConfigM master m )
                 => Maybe Bloggable 
                 -> RevisionId 
                 -> FilePath 

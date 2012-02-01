@@ -2,16 +2,16 @@ module Yesod.CoreBot.Bliki.Base where
 
 import Yesod.CoreBot.Bliki.Prelude
 
+import Yesod.CoreBot.Bliki.Config
 import Yesod.CoreBot.Bliki.Resources.Base
 
-data Bliki = Bliki
-    { data_res        :: Data
-    , blog_res        :: Blog
-    , wiki_res        :: Wiki
-    , static_res      :: Static
+data Bliki master = Bliki
+    { data_res  :: Data master
+    , blog_res  :: Blog master
+    , wiki_res  :: Wiki master
     }
 
-mkYesodSubData "Bliki" [] [parseRoutes|
+mkYesodSubData "Bliki master" [] [parseRoutes|
 /           MainR     GET
 |]
 
