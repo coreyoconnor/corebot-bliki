@@ -40,6 +40,7 @@ indirect_load data_R = do
     bliki <- lift $ getYesodSub
     let cfg = config $ data_res bliki
     base_URL <- approot <$> ( lift getYesod )
+    addScriptRemote "http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
     -- XXX: the $(.blog_content) is not specific enough. Needs to be exactly the element tied to
     -- this data_R
     addHamletHead [hamlet|

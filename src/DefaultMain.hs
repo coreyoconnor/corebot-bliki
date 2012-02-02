@@ -7,6 +7,10 @@ import Paths_corebot_bliki
 
 import Control.Monad.Fix
 
+import System.Directory ( getHomeDirectory )
+
+import System.FilePath
+
 data Main = Main
     { bliki :: Bliki_ Main
     }
@@ -37,12 +41,14 @@ mkYesod "Main" [parseRoutes|
 
 main :: IO ()
 main = do
+    home_dir <- getHomeDirectory
+    let store_dir = home_dir </> "bliki"
+        cache_dir = home_dir </> "bliki/cache"
     static_dir <- getDataFileName "static"
     putStrLn $ "using static dir: " ++ static_dir
     app <- mfix $ \app -> do
-                let config = Config { store_dir     = "/home/coconnor/bliki"
-                                    , cache_dir     = "/home/coconnor/bliki/cache"
-                                    -- XXX: I don't think building this table is required.
+                let config = Config { store_dir     = store_dir
+                                    , cache_dir     = cache_dir
                                     , data_routes   = DataS
                                     , blog_routes   = BlogS
                                     , wiki_routes   = WikiS
