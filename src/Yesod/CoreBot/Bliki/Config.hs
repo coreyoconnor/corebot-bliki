@@ -51,10 +51,10 @@ data StaticRoutes master where
 data Config master where
     Config :: { store_dir :: FilePath
               , cache_dir :: FilePath
-              , data_routes   :: DataRoutes master
-              , blog_routes   :: BlogRoutes master
-              , wiki_routes   :: WikiRoutes master
-              , static_routes :: StaticRoutes master
+              , data_routes   :: Route ( Data_ master ) -> Route master
+              , blog_routes   :: Route ( Blog_ master ) -> Route master
+              , wiki_routes   :: Route ( Wiki_ master ) -> Route master
+              , static_routes :: Route Static -> Route master
               , static_config :: Static
               } -> Config master
 

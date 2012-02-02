@@ -40,25 +40,14 @@ main = do
     static_dir <- getDataFileName "static"
     putStrLn $ "using static dir: " ++ static_dir
     app <- mfix $ \app -> do
-                let config = Config { store_dir = "/home/coconnor/bliki"
-                                    , cache_dir = "/home/coconnor/bliki/cache"
+                let config = Config { store_dir     = "/home/coconnor/bliki"
+                                    , cache_dir     = "/home/coconnor/bliki/cache"
                                     -- XXX: I don't think building this table is required.
-{-
-                                    , data_routes = DataRoutes
-                                        { latest_R     = DataS LatestR
-                                        , update_log_R = DataS UpdateLogR
-                                        , entry_latest_R = DataS EntryLatestR
-                                        , blog_R = DataS BlogR
-                                        , entry_rev_R = DataS EntryRevR
-                                        }
-                                    , blog_routes = BlogRoutes
-                                        { blog_index_R = BlogS BlogIndexR }
-                                    , wiki_routes = WikiRoutes
-                                        { wiki_index_R = WikiS WikiIndexR }
-                                    , static_routes = StaticRoutes
-                                        { file_R = StaticS FileR }
+                                    , data_routes   = DataS
+                                    , blog_routes   = BlogS
+                                    , wiki_routes   = WikiS
+                                    , static_routes = StaticS
                                     , static_config = UseDir static_dir
--}
                                     }
                 bliki <- mk_bliki config
                 return $ Main bliki

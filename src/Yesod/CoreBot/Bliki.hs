@@ -61,7 +61,7 @@ indirect_load data_R = do
 default_blog_entry = do
     bliki <- lift $ getYesodSub
     let cfg = config $ data_res bliki
-        data_R = latest_R $ data_routes cfg
+        data_R = data_routes cfg $ LatestR
     indirect_load data_R
     [whamlet|
 <div .blog_content>
