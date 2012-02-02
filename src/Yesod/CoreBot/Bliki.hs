@@ -40,7 +40,8 @@ indirect_load data_R = do
     bliki <- lift $ getYesodSub
     let cfg = config $ data_res bliki
     base_URL <- approot <$> ( lift getYesod )
-    addScriptRemote "http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
+    let wiki_node_URL = render_absolute_URL base_URL $ data_routes cfg $ EntryLatestR []
+    addScript $ static_routes cfg $ FileR "jquery.min.js"
     addScript $ static_routes cfg $ FileR "indirect_load.js"
     -- XXX: the $(.blog_content) is not specific enough. Needs to be exactly the element tied to
     -- this data_R
@@ -52,7 +53,7 @@ indirect_load data_R = do
               , function( data ) 
                 {
                     \$(".blog_content").html(data);
-                    process_HTML_for_wiki(data, $(".blog_content"), "#{base_URL}");
+                    process_HTML_for_wiki(data, $(".blog_content"), "#{wiki_node_URL}");
                 }
               , 'html'
               );
