@@ -54,6 +54,7 @@ main = do
                                     , wiki_routes   = WikiS
                                     , static_routes = StaticS
                                     , static_config = UseDir static_dir
+                                    , site = app
                                     }
                 bliki <- mk_bliki config
                 return $ Main bliki

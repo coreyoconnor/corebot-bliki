@@ -23,6 +23,7 @@ main = project $ do
     ghc_option "-XQuasiQuotes"
     ghc_option "-XTypeFamilies"
     ghc_option "-XMultiParamTypeClasses"
+    ghc_option "-XFlexibleContexts"
     ghc_option "-XFlexibleInstances"
     ghc_option "-XNoMonomorphismRestriction"
     ghc_option "-XOverloadedStrings"

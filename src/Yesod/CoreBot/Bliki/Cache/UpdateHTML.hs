@@ -3,6 +3,7 @@ module Yesod.CoreBot.Bliki.Cache.UpdateHTML where
 import Yesod.CoreBot.Bliki.Prelude
 
 import Yesod.CoreBot.Bliki.Config
+import Yesod.CoreBot.Bliki.Resources.Base
 import Yesod.CoreBot.Bliki.Store
 import Yesod.CoreBot.Bliki.DB
 
