@@ -2,8 +2,6 @@ module Yesod.CoreBot.Bliki.Store where
 
 import Yesod.CoreBot.Bliki.Prelude
 
-import Yesod.CoreBot.Bliki.Config
-
 import Control.Monad.State.Class
 
 import qualified Data.ByteString.Lazy as B

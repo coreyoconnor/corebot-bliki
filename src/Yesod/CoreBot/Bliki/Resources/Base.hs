@@ -11,17 +11,6 @@ import Control.Concurrent
 
 import Language.Haskell.TH.Syntax
 
-data Data_ master = Data 
-    { config             :: Config master
-    , store              :: Store
-    , update_thread_ID   :: ThreadId
-    , db_ref             :: IORef DB
-    }
-
-data Blog_ master = Blog ( Data_ master )
-
-data Wiki_ master = Wiki ( Data_ master )
-
 mkYesodSubData "Data_ master" [ ] [parseRoutes|
 /latest                     LatestR      GET
 /                           UpdateLogR   GET

@@ -2,11 +2,25 @@ module Yesod.CoreBot.Bliki.Config where
 
 import Yesod.CoreBot.Bliki.Prelude
 
+import Yesod.CoreBot.Bliki.DB
+import Yesod.CoreBot.Bliki.Store
+
 import Control.Monad.Reader.Class
 
 import Data.FileStore ( RevisionId )
 
 import qualified Data.Text as Text
+
+data Data_ master = Data 
+    { config             :: Config master
+    , store              :: Store
+    , update_thread_ID   :: ThreadId
+    , db_ref             :: IORef DB
+    }
+
+data Blog_ master = Blog ( Data_ master )
+
+data Wiki_ master = Wiki ( Data_ master )
 
 data Static 
     = UseServer String
@@ -20,6 +34,7 @@ data DataRoutes master where
                   , update_log_R :: Route master
                   , entry_latest_R :: Route master
                   , blog_R :: Route master
+                  , entry_rev_R :: Route master
                   } -> DataRoutes master
 
 data BlogRoutes master where

@@ -2,8 +2,6 @@ module Yesod.CoreBot.Bliki.DB where
 
 import Yesod.CoreBot.Bliki.Prelude
 
-import Yesod.CoreBot.Bliki.Config
-
 import Control.Monad.Reader
 import Control.Monad.State.Strict 
 
