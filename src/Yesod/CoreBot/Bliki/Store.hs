@@ -3,6 +3,7 @@ module Yesod.CoreBot.Bliki.Store where
 import Yesod.CoreBot.Bliki.Prelude
 
 import Control.Monad.State.Class
+import Control.Monad.Trans
 
 import qualified Data.ByteString.Lazy as B
 

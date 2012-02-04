@@ -10,8 +10,8 @@ import Yesod.CoreBot.Bliki.Config
 import Yesod.CoreBot.Bliki.DB
 import Yesod.CoreBot.Bliki.Store
 
-import Control.Monad.Reader
-import Control.Monad.State.Strict 
+import Control.Monad.Reader hiding ( lift )
+import Control.Monad.State.Strict hiding ( lift )
 
 import qualified Data.FileStore as FileStore
 

@@ -26,13 +26,10 @@ data Static
     = UseServer String
     | UseDir FilePath
 
-data AnyRoute where
-    AnyRoute :: forall r . RenderRoute r => Route r -> AnyRoute
-
 -- I don't think there is a way to do subsites of subsites in Yesod? 
 -- Widgets that need to build links need the master routes?
 data Config master where
-    Config :: ( Yesod master, RenderRoute (Route master) ) => 
+    Config :: Yesod master => 
         { store_dir :: FilePath
         , cache_dir :: FilePath
         , data_routes   :: Route ( Data_ master ) -> Route master

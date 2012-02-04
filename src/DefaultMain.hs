@@ -1,10 +1,11 @@
-module DefaultMain where
+module Main where
 import Yesod
 
-import Yesod.CoreBot.Bliki
+import Yesod.CoreBot.Bliki 
 
 import Paths_corebot_bliki
 
+import Control.Applicative
 import Control.Monad.Fix
 
 import System.Directory ( getHomeDirectory )
@@ -31,8 +32,13 @@ get_static = static_config . config . data_res . bliki
 instance Yesod Main where
     approot _ = "http://localhost:8080"
 
+getMainR = do
+    bliki <- bliki <$> getYesod
+    defaultLayout $ do
+        default_blog_entry bliki
+
 mkYesod "Main" [parseRoutes|
-/       BlikiS  Bliki  bliki
+/       MainR   GET
 /data   DataS   Data   get_data
 /blog   BlogS   Blog   get_blog
 /wiki   WikiS   Wiki   get_wiki

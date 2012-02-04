@@ -12,7 +12,7 @@ import Control.Monad.Reader.Class
 
 import qualified Data.Text as Text
 
-mkYesodSubData "Data_ master" [ ] [parseRoutes|
+mkYesodSubData "Data_ master" [] [parseRoutes|
 /latest                     LatestR      GET
 /                           UpdateLogR   GET
 /entry/*Texts               EntryLatestR GET
@@ -32,7 +32,7 @@ mkYesodSubData "Static" [] [parseRoutes|
 /#String  FileR GET
 |]
 
-revision_blog_URL :: ( RenderRoute (Route master), ConfigM master m ) 
+revision_blog_URL :: ConfigM master m
                   => RevisionId 
                   -> m String
 revision_blog_URL rev_ID = do
@@ -42,7 +42,7 @@ revision_blog_URL rev_ID = do
     return $ Text.unpack $ render_absolute_URL base_URL rev_blog_R
         
     
-entry_at_rev_URL :: ( RenderRoute (Route master), ConfigM master m ) 
+entry_at_rev_URL :: ConfigM master m
                  => String 
                  -> RevisionId 
                  -> m String

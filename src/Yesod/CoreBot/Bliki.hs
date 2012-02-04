@@ -1,5 +1,7 @@
-module Yesod.CoreBot.Bliki ( module Yesod.CoreBot.Bliki
-                           , module Yesod.CoreBot.Bliki.Base
+module Yesod.CoreBot.Bliki ( mk_bliki
+                           , default_blog_entry
+                           , indirect_load
+                           , Bliki_(..)
                            , module Yesod.CoreBot.Bliki.Config
                            , module Yesod.CoreBot.Bliki.Resources.Base
                            ) where
@@ -20,7 +22,7 @@ import qualified Yesod.CoreBot.Bliki.Resources.Wiki as Wiki
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding
 
-mk_bliki :: Yesod master 
+mk_bliki :: Yesod master
          => Config master
          -> IO ( Bliki_ master )
 mk_bliki config = do
@@ -33,11 +35,11 @@ mk_bliki config = do
                  }
 
 getMainR = do
+    bliki <- getYesodSub
     defaultLayout $ do
-        default_blog_entry
+        default_blog_entry bliki
 
-indirect_load data_R = do
-    bliki <- lift $ getYesodSub
+indirect_load bliki data_R = do
     let cfg = config $ data_res bliki
     base_URL <- approot <$> ( lift getYesod )
     let wiki_node_URL = render_absolute_URL base_URL $ data_routes cfg $ EntryLatestR []
@@ -61,11 +63,10 @@ indirect_load data_R = do
 
 |]
 
-default_blog_entry = do
-    bliki <- lift $ getYesodSub
+default_blog_entry bliki = do
     let cfg = config $ data_res bliki
         data_R = data_routes cfg $ LatestR
-    indirect_load data_R
+    indirect_load bliki data_R
     [whamlet|
 <div .blog_content>
     Loading 

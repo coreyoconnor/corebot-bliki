@@ -20,6 +20,7 @@ import Yesod hiding ( delete
                     , insert 
                     , insertBy
                     , get
+                    , object
                     )
 
 import Blaze.ByteString.Builder ( toByteString )
@@ -51,7 +52,7 @@ import Network.HTTP.Types
 
 import System.FilePath hiding ( joinPath )
 
-render_absolute_URL :: RenderRoute r => Text -> r -> Text
+render_absolute_URL :: RenderRoute r => Text -> Route r -> Text
 render_absolute_URL base_URL r = 
     let route_subpath = fst $ renderRoute r
         route_sub_URL = TextEnc.decodeUtf8 $ toByteString $ encodePathSegments route_subpath
