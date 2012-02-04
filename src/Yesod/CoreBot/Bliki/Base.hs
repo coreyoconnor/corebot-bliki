@@ -11,6 +11,8 @@ data Bliki_ master = Bliki
     , wiki_res    :: Wiki_   master
     }
 
+-- | The bliki can also be used as a subsite. If so then these are the routes supported by the
+-- Bliki_ subsite.
 mkYesodSubData "Bliki_ master" [] [parseRoutes|
 /           MainR     GET
 |]

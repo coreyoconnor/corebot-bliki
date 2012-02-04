@@ -11,8 +11,6 @@ import Yesod.CoreBot.Bliki.Prelude
 import Yesod.CoreBot.Bliki.Base
 import Yesod.CoreBot.Bliki.Config
 
-import Yesod.CoreBot.Bliki.Widget.Head
-
 import Yesod.CoreBot.Bliki.Resources.Base
 import qualified Yesod.CoreBot.Bliki.Resources.Blog as Blog
 import qualified Yesod.CoreBot.Bliki.Resources.Data as Data
@@ -22,6 +20,17 @@ import qualified Yesod.CoreBot.Bliki.Resources.Wiki as Wiki
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding
 
+-- | Constructs a Bliki component given the config.
+--
+-- This is parameterised by the Yesod app. Represented by the "master" type variable. With this type
+-- and the routes in Config the Bliki can coordinate between other subsites of the app. The other
+-- subsites support the resources required by the bliki. 
+--
+-- This would not need the routes in Config and the master type if a Bliki was entirely represented
+-- by a single Yesod subsite. I did not find that this provided the flexibility I wanted to
+-- supported both the the REST URIs for corebotllc.com and the URIs other people might want.
+--
+-- For an example of how a Bliki is constructed and integrated into a Yesod app see DefaultMain.hs
 mk_bliki :: Yesod master
          => Config master
          -> IO ( Bliki_ master )

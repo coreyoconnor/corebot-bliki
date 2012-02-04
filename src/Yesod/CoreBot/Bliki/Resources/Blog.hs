@@ -8,8 +8,6 @@ import Yesod.CoreBot.Bliki.Config
 import Yesod.CoreBot.Bliki.DB 
 import Yesod.CoreBot.Bliki.Store 
 
-import Yesod.CoreBot.Bliki.Widget.Head
-
 import qualified Data.Text as Text
 
 mk_blog :: Data_ master -> IO ( Blog_ master )

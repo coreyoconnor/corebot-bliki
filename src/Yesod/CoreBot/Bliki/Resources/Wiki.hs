@@ -6,7 +6,6 @@ import Yesod.CoreBot.Bliki.Base
 import Yesod.CoreBot.Bliki.Config
 import Yesod.CoreBot.Bliki.Store 
 import Yesod.CoreBot.Bliki.Resources.Base
-import Yesod.CoreBot.Bliki.Widget.Head
 
 import Control.Monad.State.Strict
 

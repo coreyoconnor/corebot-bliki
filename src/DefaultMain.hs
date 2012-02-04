@@ -2,11 +2,14 @@ module Main where
 import Yesod
 
 import Yesod.CoreBot.Bliki 
+import Yesod.CoreBot.Bliki.Widgets
 
 import Paths_corebot_bliki
 
 import Control.Applicative
 import Control.Monad.Fix
+
+import Data.Monoid 
 
 import System.Directory ( getHomeDirectory )
 
@@ -31,6 +34,22 @@ get_static = static_config . config . data_res . bliki
 
 instance Yesod Main where
     approot _ = "http://localhost:8080"
+    defaultLayout w = do
+        let page_w = mconcat [ w, toWidget NavWidget ]
+        p <- widgetToPageContent page_w
+        mmsg <- getMessage
+        hamletToRepHtml [hamlet|
+!!!
+
+<html>
+    <head>
+        <title>#{pageTitle p}
+        ^{pageHead p}
+    <body>
+        $maybe msg <- mmsg
+            <p .message>#{msg}
+        ^{pageBody p}
+|]
 
 getMainR = do
     bliki <- bliki <$> getYesod
