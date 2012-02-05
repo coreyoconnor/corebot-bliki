@@ -9,9 +9,20 @@ import Yesod.CoreBot.Bliki.Base
 import Yesod.CoreBot.Bliki.Config
 import Yesod.CoreBot.Bliki.Resources.Base
 
-data NavWidget = NavWidget
+data NavWidget master where
+    NavWidget :: forall master . Yesod master => Bliki_ master -> NavWidget master
 
-instance ToWidget sub master NavWidget where
-    toWidget _ = do
-        return ()
+instance ToWidget sub master ( NavWidget master ) where
+    toWidget (NavWidget bliki) = do
+            main_URL <- approot <$> ( lift $ getYesod )
+            let cfg = config $ data_res bliki
+                blog_update_log = blog_routes cfg BlogIndexR
+                wiki_index = wiki_routes cfg $ WikiIndexR []
+            [whamlet|
+                <ul .nav_sidebar>
+                    <li>
+                        <a href=#{main_URL}>Main
+                    <li><a href=@{blog_update_log}>Blog
+                    <li><a href=@{wiki_index}>Wiki
+            |]
 
