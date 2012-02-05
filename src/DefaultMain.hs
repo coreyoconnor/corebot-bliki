@@ -42,7 +42,7 @@ instance Yesod Main where
     defaultLayout w = do
         bliki <- bliki <$> getYesod
         let nav = toWidget $ NavWidget bliki
-        let page_w = mconcat [ w, nav ]
+        let page_w = mconcat [ nav, w ]
         p <- widgetToPageContent page_w
         mmsg <- getMessage
         hamletToRepHtml [hamlet|
