@@ -1,4 +1,9 @@
+{-# LANGUAGE CPP #-}
+#ifdef CABAL_EXE_BUILD
 module Main where
+#else
+module DefaultMain where
+#endif
 import Yesod
 
 import Yesod.CoreBot.Bliki 
@@ -35,7 +40,9 @@ get_static = static_config . config . data_res . bliki
 instance Yesod Main where
     approot _ = "http://localhost:8080"
     defaultLayout w = do
-        let page_w = mconcat [ w, toWidget NavWidget ]
+        bliki <- bliki <$> getYesod
+        let nav = toWidget $ NavWidget bliki
+        let page_w = mconcat [ w, nav ]
         p <- widgetToPageContent page_w
         mmsg <- getMessage
         hamletToRepHtml [hamlet|
