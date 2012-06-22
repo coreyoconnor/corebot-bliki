@@ -5,6 +5,7 @@ import Dev.Project
 main = project $ do
     require_package [ "base"
                     , "blaze-builder"
+                    , "blaze-html"
                     , "bytestring"
                     , "containers"
                     , "directory"
@@ -17,6 +18,7 @@ main = project $ do
                     , "text"
                     , "time"
                     , "yesod"
+                    , "yesod-core"
                     , "template-haskell"
                     ]
     ghc_option "-XTemplateHaskell"

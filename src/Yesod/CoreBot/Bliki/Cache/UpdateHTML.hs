@@ -25,42 +25,20 @@ import qualified Data.Text as Text
 import qualified Data.Text.Lazy          as TL
 import qualified Data.Text.Lazy.Encoding as TL
 
+import qualified Text.Blaze.Renderer.String as HTMLRenderer
 import Text.Pandoc 
 import Text.Pandoc.Shared
 
 import System.Directory
 
 pandoc_write_options :: ConfigM master m
-                     => Maybe Bloggable 
-                     -> m WriterOptions
-pandoc_write_options mprev_update = do
-    extra_vars <- case mprev_update of
-                    Nothing -> return []
-                    Just (UpdateBloggable _ prev_rev_ID _) -> do
-                        link_URL <- revision_blog_URL prev_rev_ID
-                        return $ ( "prev-blog-update"
-                                 , prev_rev_ID 
-                                 ) :
-                                 ( "prev-blog-update-URL"
-                                 , link_URL
-                                 ) : []
-                    Just (WikiBloggable prev_entry_path prev_rev_ID _) -> do
-                        link_URL <- entry_at_rev_URL prev_entry_path prev_rev_ID
-                        return $ ( "prev-node-update"
-                                 , prev_entry_path
-                                 ) : 
-                                 ( "prev-node-update-rev"
-                                 , prev_rev_ID
-                                 ) :
-                                 ( "prev-node-update-URL"
-                                 , link_URL
-                                 ) : []
+                     => m WriterOptions
+pandoc_write_options = do
     return $ defaultWriterOptions
         { writerHtml5 = True
         , writerHTMLMathMethod = MathJax "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
         , writerEmailObfuscation = JavascriptObfuscation
         , writerStandalone = True
-        , writerVariables = extra_vars ++ writerVariables defaultWriterOptions
         , writerTemplate = [heredoc|
 $for(include-before)$
 $include-before$
@@ -85,14 +63,6 @@ $body$
 $for(include-after)$
 $include-after$
 $endfor$
-<div class="previous_update_summary">
-$if(prev-node-update)$
-Previously, node $prev-node-update$ was modified to revision <a href="$prev-node-update-URL$">$prev-node-update-rev$</a>
-$endif$
-$if(prev-blog-update)$
-Previously, blog for update revision <a href="$prev-blog-update-URL$">$prev-blog-update$</a>
-$endif$
-</div>
 |]
     }
 
@@ -101,35 +71,43 @@ build_blog_HTML :: ( MonadIO m, ConfigM master m )
                 -> RevisionId 
                 -> String 
                 -> m ()
-build_blog_HTML mprev_update rev_ID txt = do
-    out_path <- asks blog_HTML_path <*> pure rev_ID
-    out_exists <- liftIO $ doesFileExist out_path 
-    case out_exists of
-        True  -> return ()
-        False -> do
-            liftIO $ putStrLn $ "build HTML for " ++ rev_ID ++ " log"
-            let pandoc = readMarkdown defaultParserState txt
-            write_opts <- pandoc_write_options mprev_update
-            let html_string = writeHtmlString write_opts pandoc
-            liftIO $ cache_str out_path html_string
-    
-build_node_HTML :: ( MonadIO m, StoreM m, ConfigM master m )
+build_blog_HTML mprev_update rev_ID txt = 
+    if_missingM (asks blog_HTML_path <*> pure rev_ID) $ \out_path -> do
+        liftIO $ putStrLn $ "build HTML for " ++ rev_ID ++ " log"
+        let pandoc = readMarkdown defaultParserState txt
+        write_opts <- pandoc_write_options
+        let html_string = writeHtmlString write_opts pandoc
+        liftIO $ cache_str out_path html_string
+
+build_node_HTML :: forall m master . ( MonadIO m, StoreM m, ConfigM master m )
                 => Maybe Bloggable 
                 -> RevisionId 
                 -> FilePath 
                 -> m ()
 build_node_HTML mprev_update rev_ID node_path = do
-    out_path <- asks node_HTML_path <*> pure rev_ID <*> pure node_path
-    out_exists <- liftIO $ doesFileExist out_path
-    case out_exists of
-        True  -> return ()
-        False -> do
-            liftIO $ putStrLn $ "build HTML for " ++ node_path ++ " " ++ show rev_ID
-            store_data <- data_for_node_rev node_path rev_ID
-            let markdown_data = FileStore.toByteString store_data
-                markdown_text = TL.unpack $ TL.decodeUtf8 markdown_data
-                pandoc        = readMarkdown    defaultParserState  markdown_text
-            write_opts <- pandoc_write_options mprev_update
-            let html_string   = writeHtmlString write_opts pandoc
-            liftIO $ cache_str out_path html_string
+    if_missingM (asks node_HTML_path <*> pure rev_ID <*> pure node_path) $ \out_path -> do
+        liftIO $ putStrLn $ "build HTML for " ++ node_path ++ " " ++ show rev_ID
+        store_data <- data_for_node_rev node_path rev_ID
+        let markdown_data = FileStore.toByteString store_data
+            markdown_text = TL.unpack $ TL.decodeUtf8 markdown_data
+            pandoc        = readMarkdown defaultParserState markdown_text
+        write_opts <- pandoc_write_options
+        let body_html_str = writeHtmlString write_opts pandoc
+        let html_builder :: ( Route master -> [(Text, Text)] -> Text ) -> Html = [hamlet|
+        <div>
+        |]
+        asks route_render
+        html_str <- HTMLRenderer.renderHtml <$> ( pure html_builder <*> asks route_render )
+        liftIO $ cache_str out_path html_str
 
+if_missingM :: ( MonadIO m ) 
+            => m FilePath 
+            -> ( FilePath -> m () )
+            -> m ()
+if_missingM pM aM = do
+    path <- pM
+    exists <- liftIO $ doesFileExist path
+    case exists of
+        True  -> return ()
+        False -> aM path
+    

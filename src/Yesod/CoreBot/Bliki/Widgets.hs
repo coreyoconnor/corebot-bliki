@@ -14,14 +14,14 @@ data NavWidget master where
 
 instance ToWidget sub master ( NavWidget master ) where
     toWidget (NavWidget bliki) = do
-            main_URL <- approot <$> ( lift $ getYesod )
             let cfg = config $ data_res bliki
+                main = main_route cfg
                 blog_update_log = blog_routes cfg BlogIndexR
                 wiki_index = wiki_routes cfg $ WikiIndexR []
             [whamlet|
                 <ul .nav_sidebar>
                     <li>
-                        <a href=#{main_URL}>Main
+                        <a href=@{main}>Main
                     <li><a href=@{blog_update_log}>Blog
                     <li><a href=@{wiki_index}>Wiki
             |]

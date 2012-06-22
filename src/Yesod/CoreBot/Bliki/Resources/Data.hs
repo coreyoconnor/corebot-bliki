@@ -124,7 +124,7 @@ update_thread ( config, store ) db_ref = do
                     writeIORef prev_time_ref =<< return . inc_a_bit 
                                              =<< head_time db_ref
             -- delay before probing for updates again
-            threadDelay 10000000
+            threadDelay $ 1000000 * probe_period config
     forever update_thread_
 
 mk_data :: Yesod master => Config master -> IO ( Data_ master )

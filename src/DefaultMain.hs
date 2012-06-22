@@ -37,8 +37,10 @@ get_wiki = wiki_res . bliki
 
 get_static = static_config . config . data_res . bliki
 
+root_URL = "http://localhost:8080"
+
 instance Yesod Main where
-    approot _ = "http://localhost:8080"
+    approot = ApprootStatic root_URL
     defaultLayout w = do
         bliki <- bliki <$> getYesod
         let nav = toWidget $ NavWidget bliki
@@ -86,7 +88,10 @@ main = do
                                     , wiki_routes   = WikiS
                                     , static_routes = StaticS
                                     , static_config = UseDir static_dir
-                                    , site = app
+                                    , main_route    = MainR
+                                    , site          = app
+                                    , route_render  = yesodRender app root_URL
+                                    , probe_period  = 10
                                     }
                 bliki <- mk_bliki config
                 return $ Main bliki
