@@ -23,15 +23,18 @@ getBlogIndexR = do
         build_summaries [] = []
         build_summaries ( Tweet     _ txt : us ) 
             = [whamlet|
+                $newline always
                 <p .tweet> #{txt}
             |] : build_summaries us
         build_summaries ( BlogAdded _ txt : us )
             = [whamlet|
+                $newline always
                 <p .blog_summary> #{take 200 txt}
             |] : build_summaries us
         build_summaries ( EntryAdded _ node_path : us ) = 
             let node_R = data_routes (config src_data) $ EntryLatestR []
             in [whamlet|
+                $newline always
                 <p .node_update>
                     Added 
                     <a href=@{node_R}/#{node_path}>#{node_path}
@@ -39,6 +42,7 @@ getBlogIndexR = do
         build_summaries ( EntryChanged _ node_path : us ) = 
             let node_R = data_routes (config src_data) $ EntryLatestR []
             in [whamlet|
+                $newline always
                 <p .node_update>
                     Changed 
                     <a href=@{node_R}/#{node_path}>#{node_path}
@@ -47,6 +51,7 @@ getBlogIndexR = do
             = build_summaries us
     defaultLayout $ do
         [whamlet|
+$newline always
 <div .update_log>
     <ol .summary_listing>
         $forall summary <- update_summaries

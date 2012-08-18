@@ -88,8 +88,6 @@ main = do
                                     , wiki_routes   = WikiS
                                     , static_routes = StaticS
                                     , static_config = UseDir static_dir
-                                    , main_route    = MainR
-                                    , site          = app
                                     , route_render  = yesodRender app root_URL
                                     , probe_period  = 10
                                     }

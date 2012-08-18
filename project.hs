@@ -6,6 +6,7 @@ main = project $ do
     require_package [ "base"
                     , "blaze-builder"
                     , "blaze-html"
+                    , "blaze-markup"
                     , "bytestring"
                     , "containers"
                     , "directory"

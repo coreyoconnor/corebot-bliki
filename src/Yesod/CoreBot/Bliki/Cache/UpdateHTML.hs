@@ -94,9 +94,8 @@ build_node_HTML mprev_update rev_ID node_path = do
         write_opts <- pandoc_write_options
         let body_html_str = writeHtmlString write_opts pandoc
         let html_builder :: ( Route master -> [(Text, Text)] -> Text ) -> Html = [hamlet|
-        <div>
+        #{preEscapedToMarkup body_html_str}
         |]
-        asks route_render
         html_str <- HTMLRenderer.renderHtml <$> ( pure html_builder <*> asks route_render )
         liftIO $ cache_str out_path html_str
 

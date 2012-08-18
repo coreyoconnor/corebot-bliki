@@ -36,9 +36,7 @@ data Config master where
         , blog_routes   :: Route ( Blog_ master ) -> Route master
         , wiki_routes   :: Route ( Wiki_ master ) -> Route master
         , static_routes :: Route Static -> Route master
-        , main_route :: Route master
         , static_config :: Static
-        , site :: master
         , route_render :: Route master -> [(Text, Text)] -> Text
         , probe_period :: Int
         } -> Config master
