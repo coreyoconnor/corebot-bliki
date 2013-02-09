@@ -1,9 +1,5 @@
-{-# LANGUAGE CPP #-}
-#ifdef CABAL_EXE_BUILD
-module Main where
-#else
-module DefaultMain where
-#endif
+module CoreBot where
+
 import Yesod
 
 import Yesod.CoreBot.Bliki 
@@ -21,30 +17,18 @@ import System.Directory ( getHomeDirectory )
 import System.FilePath
 
 data Main = Main
-    { bliki :: Bliki_ Main
+    { bliki :: Bliki
+    , root_URL :: String
     }
 
-type Bliki = Bliki_ Main
-
-type Data = Data_ Main
-get_data = data_res . bliki
-
-type Blog = Blog_ Main
-get_blog = blog_res . bliki
-
-type Wiki = Wiki_ Main
-get_wiki = wiki_res . bliki
-
-get_static = static_config . config . data_res . bliki
-
-root_URL = "http://localhost:8080"
+instance HasBliki Main where
+  get_bliki = bliki
 
 instance Yesod Main where
-    approot = ApprootStatic root_URL
+    approot = ApprootMaster root_URL
     defaultLayout w = do
         bliki <- bliki <$> getYesod
-        let nav = toWidget $ NavWidget bliki
-        let page_w = mconcat [ nav, w ]
+        let page_w = mconcat [ nav_widget bliki, w ]
         p <- widgetToPageContent page_w
         mmsg <- getMessage
         hamletToRepHtml [hamlet|
@@ -62,19 +46,23 @@ instance Yesod Main where
 
 getMainR = do
     bliki <- bliki <$> getYesod
-    defaultLayout $ do
-        default_blog_entry bliki
-
-mkYesod "Main" [parseRoutes|
-/       MainR   GET
-/data   DataS   Data   get_data
-/blog   BlogS   Blog   get_blog
-/wiki   WikiS   Wiki   get_wiki
-/static StaticS Static get_static
+    defaultLayout [whamlet|
+^{default_blog_entry bliki}
 |]
 
-main :: IO ()
-main = do
+mkYesod "Main" [parseRoutes|
+/                             MainR         GET
+/blog                         BlogIndexR    GET
+/data                         UpdateLogR    GET
+/data/latest                  LatestR       GET
+/data/entry/*Texts            EntryLatestR  GET
+/data/blog/#RevisionId        BlogR         GET
+/data/rev/#RevisionId/*Texts  EntryRevR     GET
+/wiki/*Texts                  WikiIndexR    GET
+/static/#String               FileR         GET
+|]
+
+main root_URL store_dir cache_dir = do
     home_dir <- getHomeDirectory
     let store_dir = home_dir </> "bliki"
         cache_dir = home_dir </> "bliki/cache"
